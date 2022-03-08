@@ -1,7 +1,10 @@
+#include <SimpleSleep.h>
+SimpleSleep Sleep; 
+
 #include <Adafruit_NeoPixel.h>
 
-#define BUTTON_PIN   7
-#define PIXEL_PIN    8
+#define BUTTON_PIN   0
+#define PIXEL_PIN    1
 #define PIXEL_COUNT 1
 Adafruit_NeoPixel strip(PIXEL_COUNT, PIXEL_PIN, NEO_GRB + NEO_KHZ800);
 
@@ -15,10 +18,15 @@ long firstPixelHue = 0;
 // Timing
 unsigned long lastTime = 0;
 
+void interruptHandler(){
+}
+
 void setup() {
+  Serial.begin(9600);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   strip.begin();
   strip.show();
+  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), interruptHandler, LOW);
 }
 
 void loop() {
@@ -35,7 +43,9 @@ void loop() {
 
   switch (mode) {          // Start the new animation...
     case 0:
-      colorWipe(strip.Color(  0,   0,   0), 50);    // Black/off
+      strip.clear();
+      strip.show();
+      sleepIn(10000);// Dormir 10 segundos despues de apagado
       break;
     case 1:
       colorWipe(strip.Color(255, 255, 255), 50);    // White
@@ -73,6 +83,17 @@ void loop() {
   }
   
   oldState = newState;
+}
+
+void sleepIn(int wait) {
+  unsigned long dif = millis() - lastTime;
+  Serial.println(dif);
+  if (dif >= wait){
+    // Do Sleep
+    Serial.println("sleepNow");
+    delay(100);
+    Sleep.deeply();
+  }
 }
 
 void colorWipe(uint32_t color, int wait) {
